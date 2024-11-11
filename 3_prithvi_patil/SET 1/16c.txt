@@ -1,0 +1,71 @@
+-- Create the stud21 table
+CREATE TABLE stud21 (
+    roll INT PRIMARY KEY,
+    att INT,
+    status VARCHAR(1)
+);
+
+-- Create the D_Stud table
+CREATE TABLE D_Stud (
+    roll INT,
+    detain_date DATE
+);
+
+-- Insert data into the stud21 table
+INSERT INTO stud21 (roll, att, status) VALUES (1001, 80, NULL);
+INSERT INTO stud21 (roll, att, status) VALUES (1002, 70, NULL);
+INSERT INTO stud21 (roll, att, status) VALUES (1003, 60, NULL);
+INSERT INTO stud21 (roll, att, status) VALUES (1004, 90, NULL);
+
+COMMIT;
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE DetainStudents()
+BEGIN
+    DECLARE v_roll INT;
+    DECLARE v_att INT;
+    DECLARE done INT DEFAULT 0;
+
+    -- Cursor to select students with attendance below 75%
+    DECLARE c_students CURSOR FOR
+        SELECT roll, att FROM stud21 WHERE att < 75;
+
+    -- Handler to exit the loop when no more rows are found
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Open the cursor
+    OPEN c_students;
+
+    read_loop: LOOP
+        -- Fetch each row from the cursor
+        FETCH c_students INTO v_roll, v_att;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Update student status to 'D' for detention
+        UPDATE stud21
+        SET status = 'D'
+        WHERE roll = v_roll;
+
+        -- Insert record in D_Stud table
+        INSERT INTO D_Stud (roll, detain_date)
+        VALUES (v_roll, CURDATE());
+    END LOOP;
+
+    -- Close the cursor
+    CLOSE c_students;
+
+    -- Commit the changes
+    COMMIT;
+
+    -- Output the message
+    SELECT 'Students with attendance below 75% have been marked as detained.' AS Message;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure:
+CALL DetainStudents();

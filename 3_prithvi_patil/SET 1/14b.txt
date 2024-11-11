@@ -1,0 +1,50 @@
+-- Create the account_master table
+CREATE TABLE account_master (
+    account_id INT PRIMARY KEY, 
+    balance DECIMAL(10, 2)           
+);
+
+-- Insert data into the account_master table
+INSERT INTO account_master (account_id, balance) VALUES (1001, 5000.00);
+INSERT INTO account_master (account_id, balance) VALUES (1002, 300.00);
+INSERT INTO account_master (account_id, balance) VALUES (1003, 1500.00);
+INSERT INTO account_master (account_id, balance) VALUES (1004, 7500.00);
+INSERT INTO account_master (account_id, balance) VALUES (1005, 1200.00);
+
+COMMIT;
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE WithdrawFunds(IN p_account_id INT, IN p_withdraw_amount DECIMAL(10, 2))
+BEGIN
+    DECLARE v_balance DECIMAL(10, 2);
+
+    -- Handle case where the account ID is not found
+    DECLARE EXIT HANDLER FOR NOT FOUND 
+    SELECT 'Account ID not found in the table.' AS Message;
+
+    -- Fetch the current balance for the specified account
+    SELECT balance INTO v_balance
+    FROM account_master
+    WHERE account_id = p_account_id;
+
+    -- Check if the withdrawal amount is greater than the current balance
+    IF p_withdraw_amount > v_balance THEN
+        SELECT 'Error: Insufficient funds for withdrawal.' AS Message;
+    ELSE
+        -- Update the balance after withdrawal
+        UPDATE account_master
+        SET balance = balance - p_withdraw_amount
+        WHERE account_id = p_account_id;
+
+        SELECT CONCAT('Withdrawal successful. New balance: ', (v_balance - p_withdraw_amount)) AS Message;
+    END IF;
+
+    COMMIT;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure for a specific account ID (e.g., 1001) and withdrawal amount (e.g., 500):
+CALL WithdrawFunds(1001, 500);

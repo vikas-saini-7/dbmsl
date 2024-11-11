@@ -1,0 +1,73 @@
+-- Create the EMP table
+CREATE TABLE EMP (
+    e_no INT PRIMARY KEY,
+    d_no INT,
+    salary DECIMAL(10, 2)
+);
+
+-- Create the dept_salary table
+CREATE TABLE dept_salary (
+    d_no INT PRIMARY KEY,
+    avg_salary DECIMAL(10, 2)
+);
+
+-- Sample data
+INSERT INTO EMP (e_no, d_no, salary) VALUES (1, 101, 50000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (2, 101, 60000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (3, 102, 55000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (4, 103, 45000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (5, 102, 52000);
+
+COMMIT;
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE CalculateDeptSalaries()
+BEGIN
+    DECLARE v_d_no INT;
+    DECLARE v_avg_salary DECIMAL(10, 2);
+    DECLARE done INT DEFAULT 0;
+
+    -- Cursor to iterate over distinct department numbers
+    DECLARE dept_cursor CURSOR FOR
+        SELECT DISTINCT d_no FROM EMP;
+
+    -- Handler for end of cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Open the cursor
+    OPEN dept_cursor;
+
+    read_loop: LOOP
+        -- Fetch the next department number
+        FETCH dept_cursor INTO v_d_no;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+
+        -- Calculate average salary for the current department
+        SELECT AVG(salary) INTO v_avg_salary
+        FROM EMP
+        WHERE d_no = v_d_no;
+
+        -- Insert the department's average salary into dept_salary
+        INSERT INTO dept_salary (d_no, avg_salary)
+        VALUES (v_d_no, v_avg_salary)
+        ON DUPLICATE KEY UPDATE avg_salary = v_avg_salary;
+
+        -- Output message
+        SELECT CONCAT('Inserted/Updated average salary for department ', v_d_no, ': ', v_avg_salary) AS Message;
+    END LOOP;
+
+    -- Close the cursor
+    CLOSE dept_cursor;
+
+    -- Commit the changes
+    COMMIT;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure:
+CALL CalculateDeptSalaries();

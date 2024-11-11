@@ -1,0 +1,105 @@
+CREATE DATABASE Comp;
+USE Comp;
+
+CREATE TABLE Employee (
+    emp_no INT PRIMARY KEY,
+    name VARCHAR(100),
+    skill VARCHAR(50),
+    pay_rate DECIMAL(10, 2)
+);
+
+CREATE TABLE Position (
+    posting_no INT PRIMARY KEY,
+    skill VARCHAR(50)
+);
+
+CREATE TABLE Duty_allocation (
+    posting_no INT,
+    emp_no INT,
+    day DATE,
+    shift VARCHAR(50),
+    PRIMARY KEY (posting_no, emp_no, day),
+    FOREIGN KEY (posting_no) REFERENCES Position (posting_no),
+    FOREIGN KEY (emp_no) REFERENCES Employee(emp_no)
+);
+
+INSERT INTO Employee (emp_no, name, skill, pay_rate) VALUES
+(123461, 'Alice', 'Chef', 500.00),
+(123462, 'Bob', 'Waiter', 300.00),
+(123463, 'Charlie', 'Chef', 450.00),
+(123464, 'David', 'Waiter', 350.00),
+(123465, 'Eve', 'Chef', 520.00),
+(123466, 'Frank', 'Waiter', 400.00);
+
+INSERT INTO Position (posting_no, skill) VALUES
+(1, 'Chef'),
+(2, 'Waiter');
+
+INSERT INTO Duty_allocation (posting_no, emp_no, day, shift) VALUES
+(1, 123461, '1986-04-01', 'Morning'),
+(1, 123463, '1986-04-01', 'Evening'),
+(2, 123462, '1986-04-01', 'Morning'),
+(2, 123464, '1986-04-01', 'Evening'),
+(1, 123465, '1986-04-02', 'Morning'),
+(2, 123466, '1986-04-02', 'Evening'),
+(1, 123461, '1986-04-02', 'Evening'),
+(2, 123464, '1986-04-02', 'Morning');
+-- 1
+SELECT DA.posting_no, DA.day, DA.shift
+FROM Duty_allocation DA
+WHERE DA.emp_no = 123461 AND DA.day BETWEEN '1986-04-01' AND '1986-04-30';
+-- 2
+SELECT DA.day, DA.shift
+FROM Duty_allocation DA
+JOIN Employee E ON E.emp_no = DA.emp_no
+WHERE E.name = 'xyz';
+-- 3
+SELECT E.name, E.pay_rate
+FROM Employee E
+WHERE E.pay_rate >= (SELECT pay_rate FROM Employee WHERE name = 'Eve');
+-- 4
+SELECT E1.name, E1.pay_rate
+FROM Employee E1
+WHERE E1.emp_no < 123460
+AND E1.pay_rate > (SELECT MAX(E2.pay_rate) 
+                   FROM Employee E2
+                   WHERE E2.emp_no >= 123460);
+-- 5
+SELECT E.name
+FROM Employee E
+WHERE NOT EXISTS (
+    SELECT P.posting_no
+    FROM Position P
+    WHERE P.skill = 'Chef'
+    AND NOT EXISTS (
+        SELECT DA.emp_no
+        FROM Duty_allocation DA
+        WHERE DA.emp_no = E.emp_no AND DA.posting_no = P.posting_no
+    )
+);
+-- 6
+SELECT E.name, E.pay_rate
+FROM Employee E
+WHERE E.pay_rate = (SELECT MIN(pay_rate) FROM Employee);
+-- 7
+SELECT DA.emp_no
+FROM Duty_allocation DA
+GROUP BY DA.emp_no
+HAVING COUNT(DISTINCT DA.day) >= 2;
+-- 8
+SELECT E.name
+FROM Employee E
+JOIN Duty_allocation DA ON E.emp_no = DA.emp_no
+WHERE E.skill = 'Chef';
+-- 9
+SELECT E.name
+FROM Employee E
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM Duty_allocation DA
+    WHERE DA.emp_no = E.emp_no
+);
+-- 10
+SELECT DA.shift, COUNT(DISTINCT DA.emp_no) AS employee_count
+FROM Duty_allocation DA
+GROUP BY DA.shift;

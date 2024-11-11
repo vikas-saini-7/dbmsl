@@ -1,0 +1,67 @@
+use DYPIT; // Create or switch to the database
+
+Teachers Collection
+
+db.Teachers.insertMany([
+    { Tname: "Praveen", dno: 101, dname: "Computer", experience: 5, salary: 30000, date_of_joining: new Date("2018-01-15") },
+    { Tname: "Rajesh", dno: 102, dname: "IT", experience: 7, salary: 25000, date_of_joining: new Date("2016-05-20") },
+    { Tname: "Suresh", dno: 103, dname: "E&TC", experience: 3, salary: 20000, date_of_joining: new Date("2019-07-10") },
+    { Tname: "Anita", dno: 104, dname: "Computer", experience: 8, salary: 35000, date_of_joining: new Date("2015-03-12") }
+]);
+
+student Collection
+
+db.Students.insertMany([
+    { Sname: "Alice", roll_no: 2, class: "10A" },
+    { Sname: "xyz", roll_no: 25, class: "10B" },
+    { Sname: "Bob", roll_no: 35, class: "10A" }
+]);
+
+1.
+db.Teachers.find().pretty();
+
+2.
+db.Teachers.aggregate([
+    { $match: { dname: "Computer" } },
+    { $group: { _id: null, avgSalary: { $avg: "$salary" } } }
+]);
+
+3.
+db.Teachers.aggregate([
+    { $match: { dname: "E&TC" } },
+    { $group: { _id: null, minSalary: { $min: "$salary" }, maxSalary: { $max: "$salary" } } }
+]);
+
+4.
+db.Teachers.find({ 
+    dname: { $in: ["Computer", "IT", "E&TC"] }, 
+    salary: { $gte: 10000 } 
+}).pretty();
+
+5.
+db.Students.find({ $or: [{ roll_no: 2 }, { Sname: "xyz" }] }).pretty();
+
+6.
+db.Teachers.updateOne(
+    { Tname: "Praveen" },
+    { $set: { experience: 10, dno: 101, dname: "Computer", salary: 30000, date_of_joining: new Date("2018-01-15") } },
+    { upsert: true }
+);
+
+7.
+db.Teachers.updateMany(
+    { dname: "IT" },
+    { $set: { dname: "COMP" } }
+);
+
+8.
+db.Teachers.find({}, { Tname: 1, experience: 1, _id: 0 }).pretty();
+
+9.
+db.Department.save({ dept_id: 105, dept_name: "Mechanical", dept_head: "Dr. Sharma" });
+
+10.
+db.Teachers.aggregate([
+    { $group: { _id: null, totalSalary: { $sum: "$salary" } } }
+]);
+

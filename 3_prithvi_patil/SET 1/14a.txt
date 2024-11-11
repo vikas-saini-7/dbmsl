@@ -1,0 +1,57 @@
+-- Create the Stud table
+CREATE TABLE Stud (
+    Roll INT PRIMARY KEY, 
+    Att DECIMAL(3, 1),             
+    Status VARCHAR(2)             
+);
+
+-- Insert data into the Stud table
+INSERT INTO Stud (Roll, Att, Status) VALUES (101, 80, NULL);
+INSERT INTO Stud (Roll, Att, Status) VALUES (102, 65, NULL);
+INSERT INTO Stud (Roll, Att, Status) VALUES (103, 90, NULL);
+INSERT INTO Stud (Roll, Att, Status) VALUES (104, 70, NULL);
+INSERT INTO Stud (Roll, Att, Status) VALUES (105, 85, NULL);
+
+-- Commit the changes (note that in MySQL, COMMIT is typically automatic unless you're in a transaction)
+COMMIT;
+
+-- MySQL Stored Procedure
+
+DELIMITER //
+
+CREATE PROCEDURE CheckAttendance(IN p_rollno INT)
+BEGIN
+    DECLARE v_attendance DECIMAL(3, 1);
+
+    -- Handle case where the roll number does not exist
+    DECLARE EXIT HANDLER FOR NOT FOUND 
+    SELECT 'Roll number not found in the table.' AS Message;
+
+    -- Fetch the attendance of the student based on the entered roll number
+    SELECT Att INTO v_attendance
+    FROM Stud
+    WHERE Roll = p_rollno;
+
+    -- Check if attendance is less than 75%
+    IF v_attendance < 75 THEN
+        SELECT 'Term not granted' AS Message;
+        -- Update the status to "D" for denied
+        UPDATE Stud
+        SET Status = 'D'
+        WHERE Roll = p_rollno;
+    ELSE
+        SELECT 'Term granted' AS Message;
+        -- Update the status to "ND" for not denied
+        UPDATE Stud
+        SET Status = 'ND'
+        WHERE Roll = p_rollno;
+    END IF;
+
+    -- Commit changes
+    COMMIT;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure for a specific Roll number (e.g., 102), run:
+CALL CheckAttendance(102);

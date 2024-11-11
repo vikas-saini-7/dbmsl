@@ -1,0 +1,60 @@
+-- Create the Emp table
+CREATE TABLE Emp (
+    e_no INT PRIMARY KEY,
+    e_name VARCHAR(100),
+    salary DECIMAL(10, 2)
+);
+
+-- Create the Tracking table
+CREATE TABLE Tracking (
+    e_no INT,
+    salary DECIMAL(10, 2),
+    PRIMARY KEY (e_no)
+);
+
+INSERT INTO Emp (e_no, e_name, salary) 
+VALUES 
+(101, 'John Doe', 60000),
+(102, 'Jane Smith', 45000),
+(103, 'Bob Brown', 55000);
+
+DELIMITER $$
+
+CREATE TRIGGER before_insert_salary
+BEFORE INSERT ON Emp
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < 50000 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Salary cannot be less than Rs. 50,000';
+    ELSE
+        INSERT INTO Tracking (e_no, salary) VALUES (NEW.e_no, NEW.salary);
+    END IF;
+END$$
+
+DELIMITER ;
+
+DELIMITER $$
+
+CREATE TRIGGER before_update_salary
+BEFORE UPDATE ON Emp
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < 50000 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Salary cannot be updated to less than Rs. 50,000';
+    ELSE
+        INSERT INTO Tracking (e_no, salary) VALUES (NEW.e_no, NEW.salary);
+    END IF;
+END$$
+
+DELIMITER ;
+
+-- This should fail because salary is less than Rs. 50,000
+INSERT INTO Emp (e_no, e_name, salary) 
+VALUES (104, 'Alice Green', 40000);
+
+-- This should fail because salary is being updated to less than Rs. 50,000
+UPDATE Emp
+SET salary = 40000
+WHERE e_no = 103;

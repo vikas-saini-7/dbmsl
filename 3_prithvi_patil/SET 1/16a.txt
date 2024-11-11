@@ -1,0 +1,42 @@
+-- Create the accounts table
+CREATE TABLE accounts (
+    account_id INT PRIMARY KEY,
+    last_transaction_date DATE,
+    status VARCHAR(10)
+);
+
+-- Insert data into the accounts table
+INSERT INTO accounts (account_id, last_transaction_date, status) VALUES (1, DATE_SUB(CURDATE(), INTERVAL 400 DAY), 'INACTIVE');
+INSERT INTO accounts (account_id, last_transaction_date, status) VALUES (2, DATE_SUB(CURDATE(), INTERVAL 100 DAY), 'ACTIVE');
+INSERT INTO accounts (account_id, last_transaction_date, status) VALUES (3, DATE_SUB(CURDATE(), INTERVAL 500 DAY), 'INACTIVE');
+INSERT INTO accounts (account_id, last_transaction_date, status) VALUES (4, DATE_SUB(CURDATE(), INTERVAL 50 DAY), 'ACTIVE');
+
+COMMIT;
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE ActivateOldInactiveAccounts()
+BEGIN
+    DECLARE v_rows_updated INT;
+
+    -- Update accounts that are inactive and haven't had transactions in the last 365 days
+    UPDATE accounts
+    SET status = 'ACTIVE'
+    WHERE status = 'INACTIVE' AND last_transaction_date < DATE_SUB(CURDATE(), INTERVAL 365 DAY);
+
+    -- Get the number of rows affected by the update
+    SET v_rows_updated = ROW_COUNT();
+
+    -- Display a message based on the update result
+    IF v_rows_updated > 0 THEN
+        SELECT CONCAT(v_rows_updated, ' account(s) have been activated.') AS Message;
+    ELSE
+        SELECT 'No inactive accounts found for activation.' AS Message;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure:
+CALL ActivateOldInactiveAccounts();

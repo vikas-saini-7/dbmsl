@@ -1,0 +1,75 @@
+//Step 1: Create Database and Collections
+
+use DYPIT; // Switch to database or create it
+
+// Create and insert into Teachers collection
+db.Teachers.insertMany([
+    { Tname: "Praveen", dno: 101, dname: "Computer", experience: 5, salary: 15000, date_of_joining: new Date("2018-01-15") },
+    { Tname: "Rajesh", dno: 102, dname: "IT", experience: 7, salary: 12000, date_of_joining: new Date("2016-05-20") },
+    { Tname: "Suresh", dno: 103, dname: "E&TC", experience: 3, salary: 9000, date_of_joining: new Date("2019-07-10") }
+]);
+
+// Create and insert into Students collection
+db.Students.insertMany([
+    { Sname: "Alice", roll_no: 1, class: "10A" },
+    { Sname: "xyz", roll_no: 2, class: "10B" },
+    { Sname: "Bob", roll_no: 3, class: "10A" }
+]);
+
+// 1.Find the information about all teachers
+
+db.Teachers.find().pretty();
+
+//2.Find the information about all teachers of the computer department
+
+db.Teachers.find({ dname: "Computer" }).pretty();
+
+//3.Find the information about all teachers of Computer, IT, and E&TC departments
+
+db.Teachers.find({ dname: { $in: ["Computer", "IT", "E&TC"] } }).pretty();
+
+//4.Find teachers in Computer, IT, and E&TC departments with a salary ≥ 10000
+
+db.Teachers.find({ dname: { $in: ["Computer", "IT", "E&TC"] }, salary: { $gte: 10000 } }).pretty();
+
+//5.Find student information with roll_no = 2 or Sname = "xyz"
+
+db.Students.find({ $or: [{ roll_no: 2 }, { Sname: "xyz" }] }).pretty();
+
+//6.
+
+db.Teachers.updateOne(
+    { Tname: "Praveen" },
+    { $set: { experience: 10, dname: "Computer", salary: 15000, date_of_joining: new Date("2018-01-15") } },
+    { upsert: true }
+);
+
+//7.
+
+db.Teachers.updateMany(
+    { dname: "IT" },
+    { $set: { dname: "COMP" } }
+);
+
+//8.
+
+db.Teachers.find({}, { Tname: 1, experience: 1, _id: 0 }).pretty();
+
+//9.
+
+db.Department.save({ dept_id: 104, dept_name: "Mechanical", dept_head: "Dr. Sharma" });
+
+//10.
+
+let teacher = db.Teachers.findOne({ Tname: "Rajesh" });
+teacher.dname = "IT";
+db.Teachers.save(teacher);
+
+11.
+
+db.Teachers.deleteMany({ dname: "IT" });
+
+12.
+
+db.Teachers.find().sort({ Tname: 1 }).limit(3).pretty();
+

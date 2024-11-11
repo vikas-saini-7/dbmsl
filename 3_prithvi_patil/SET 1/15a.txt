@@ -1,0 +1,44 @@
+-- Create the client_master table
+CREATE TABLE client_master (
+    client_id INT PRIMARY KEY,
+    client_name VARCHAR(100),
+    bal_due DECIMAL(10, 2)
+);
+
+-- Insert data into the client_master table
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (101, 'John Doe', 500.00);
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (102, 'Jane Smith', -50.00); 
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (103, 'Michael Brown', 100.00);
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (104, 'Emily Davis', 200.00);
+
+COMMIT;
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE CheckBalanceDue(IN p_client_id INT)
+BEGIN
+    DECLARE v_bal_due DECIMAL(10, 2);
+
+    -- Handle case where client ID is not found
+    DECLARE EXIT HANDLER FOR NOT FOUND 
+    SELECT 'Error: Client not found.' AS Message;
+
+    -- Fetch the balance due value for the client
+    SELECT bal_due INTO v_bal_due
+    FROM client_master
+    WHERE client_id = p_client_id;
+
+    -- Check if the balance due is less than 0
+    IF v_bal_due < 0 THEN
+        SELECT 'Error: Balance due is less than 0. Business Rule Violated.' AS Message;
+    ELSE
+        SELECT CONCAT('Balance Due is valid: ', v_bal_due) AS Message;
+    END IF;
+
+END //
+
+DELIMITER ;
+
+-- To execute the procedure for a specific client ID (e.g., 101):
+CALL CheckBalanceDue(101);

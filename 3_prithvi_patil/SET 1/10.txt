@@ -1,0 +1,82 @@
+CREATE DATABASE banks;
+USE banks;
+
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50),
+    city VARCHAR(50),
+    PRIMARY KEY (cname)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10, 2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10, 2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT INTO Branch (bname, city) VALUES
+('Perryridge', 'New York'),
+('Maplewood', 'Los Angeles'),
+('Oakridge', 'Chicago'),
+('BlueRidge', 'Bombay');
+
+INSERT INTO Customers (cname, city) VALUES
+('Anil', 'Pune'),
+('John', 'Chicago'),
+('Mike', 'Los Angeles'),
+('Sara', 'Pune'),
+('Emma', 'Mumbai');
+
+INSERT INTO Deposit (actno, cname, bname, amount, adate) VALUES
+(101, 'Anil', 'Perryridge', 5000.00, '1996-12-05'),
+(102, 'John', 'Maplewood', 3000.00, '1996-06-15'),
+(103, 'Mike', 'Oakridge', 6000.00, '1997-01-10'),
+(104, 'Sara', 'Oakridge', 2000.00, '1996-07-25'),
+(105, 'Emma', 'Perryridge', 4500.00, '1996-11-20');
+
+INSERT INTO Borrow (loanno, cname, bname, amount) VALUES
+(1, 'Anil', 'Perryridge', 15000.00),
+(2, 'John', 'Maplewood', 20000.00),
+(3, 'Mike', 'Oakridge', 25000.00),
+(4, 'Sara', 'Oakridge', 5000.00),
+(5, 'Emma', 'Perryridge', 10000.00);
+-- a
+SELECT bname
+FROM Branch
+WHERE city = 'Bombay';
+-- b
+SELECT actno, amount
+FROM Deposit;
+-- c
+UPDATE Customers
+SET city = 'Mumbai'
+WHERE cname = 'Anil';
+-- d
+SELECT COUNT(DISTINCT cname) AS num_depositors
+FROM Deposit;
+-- e
+SELECT MIN(amount) AS min_amount, MAX(amount) AS max_amount
+FROM Deposit;
+-- f
+CREATE INDEX idx_deposit_amount ON Deposit(amount);
+-- g
+CREATE VIEW Borrow_View AS
+SELECT loanno, cname, bname, amount
+FROM Borrow;

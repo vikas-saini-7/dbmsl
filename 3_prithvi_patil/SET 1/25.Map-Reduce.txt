@@ -1,0 +1,22 @@
+//1. Get the Count of Males and Females
+//MapReduce for Count of Males and Females
+//Map Function: The map function emits the gender of each user.
+
+
+var mapGender = function() {
+    emit(this.gender, 1);
+};
+
+//Reduce Function: The reduce function aggregates the count for each gender.
+
+var reduceGender = function(key, values) {
+    return Array.sum(values);
+};
+
+//Execute the MapReduce Query:
+
+db.users.mapReduce(
+    mapGender,
+    reduceGender,
+    { out: "gender_count" }
+);

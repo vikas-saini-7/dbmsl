@@ -1,0 +1,80 @@
+-- Create the Borrow table
+CREATE TABLE Borrow (
+    Roll_no INT PRIMARY KEY,
+    Name VARCHAR(100),
+    DateofIssue DATE,
+    NameofBook VARCHAR(100),
+    Status VARCHAR(1) -- 'I' for Issued, 'R' for Returned
+);
+
+-- Create the Fine table
+CREATE TABLE Fine (
+    Roll_no INT,
+    Dates DATE,
+    Amt DECIMAL(10, 2),
+    PRIMARY KEY (Roll_no, Dates)
+);
+
+-- Insert data into the Borrow table
+INSERT INTO Borrow (Roll_no, Name, DateofIssue, NameofBook, Status) 
+VALUES (101, 'John Doe', '2024-10-01', 'The Great Gatsby', 'I');
+INSERT INTO Borrow (Roll_no, Name, DateofIssue, NameofBook, Status) 
+VALUES (102, 'Jane Smith', '2024-09-15', 'Moby Dick', 'I');
+INSERT INTO Borrow (Roll_no, Name, DateofIssue, NameofBook, Status) 
+VALUES (103, 'Michael Brown', '2024-08-01', 'War and Peace', 'I');
+
+COMMIT;
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE CalculateFine(IN p_roll_no INT, IN p_book_name VARCHAR(100))
+BEGIN
+    DECLARE v_date_of_issue DATE;
+    DECLARE v_current_date DATE DEFAULT CURDATE();
+    DECLARE v_no_of_days INT;
+    DECLARE v_fine_amount DECIMAL(10, 2) DEFAULT 0;
+    DECLARE v_status VARCHAR(1);
+
+    -- Handle case where no borrow record is found
+    DECLARE EXIT HANDLER FOR NOT FOUND 
+    SELECT 'Error: No borrow record found for this roll number and book.' AS Message;
+
+    -- Fetch the date of issue and status from the Borrow table
+    SELECT DateofIssue, Status INTO v_date_of_issue, v_status
+    FROM Borrow
+    WHERE Roll_no = p_roll_no AND NameofBook = p_book_name;
+
+    -- Calculate the number of days between the current date and the date of issue
+    SET v_no_of_days = DATEDIFF(v_current_date, v_date_of_issue);
+
+    -- Determine the fine based on the number of days
+    IF v_no_of_days BETWEEN 15 AND 30 THEN
+        SET v_fine_amount = v_no_of_days * 5;  -- Rs. 5 per day for 15-30 days overdue
+    ELSEIF v_no_of_days > 30 THEN
+        SET v_fine_amount = v_no_of_days * 50; -- Rs. 50 per day for over 30 days
+    ELSE
+        SET v_fine_amount = v_no_of_days * 5;  -- Rs. 5 per day for under 15 days
+    END IF;
+
+    -- Update the status of the book to 'R' (Returned)
+    UPDATE Borrow
+    SET Status = 'R'
+    WHERE Roll_no = p_roll_no AND NameofBook = p_book_name;
+
+    -- Insert fine details if any fine is due
+    IF v_fine_amount > 0 THEN
+        INSERT INTO Fine (Roll_no, Dates, Amt)
+        VALUES (p_roll_no, v_current_date, v_fine_amount);
+    END IF;
+
+    -- Output the fine amount
+    SELECT CONCAT('Fine Amount for Book: ', p_book_name, ' is Rs. ', v_fine_amount) AS Message;
+
+    COMMIT;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure for a specific Roll number (e.g., 101) and book name (e.g., 'The Great Gatsby'):
+CALL CalculateFine(101, 'The Great Gatsby');

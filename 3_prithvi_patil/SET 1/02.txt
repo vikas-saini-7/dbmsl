@@ -1,0 +1,84 @@
+CREATE DATABASE two;
+USE two;
+CREATE TABLE employee(
+	emp_name VARCHAR(25) PRIMARY KEY NOT NULL,
+    street VARCHAR(15),
+    city VARCHAR(15)
+);
+CREATE TABLE works(
+	emp_name VARCHAR(25),
+    company_name VARCHAR(25),
+    salary INT,
+    FOREIGN KEY (emp_name) REFERENCES employee(emp_name)
+);
+CREATE TABLE company(
+	company_name VARCHAR(25) PRIMARY KEY,
+    city VARCHAR(15)
+);
+CREATE TABLE manages(
+	emp_name VARCHAR(25),
+    manager_name VARCHAR(25),
+    FOREIGN KEY (emp_name) REFERENCES employee(emp_name),
+    FOREIGN KEY (manager_name) REFERENCES employee(emp_name)
+);
+INSERT INTO employee(emp_name, street, city) VALUES 
+('Alice', '123 Maple St', 'New York'),
+('Bob', '456 Oak St', 'Chicago'),
+('Charlie', '789 Pine St', 'New York'),
+('David', '321 Birch St', 'Los Angeles'),
+('Eve', '654 Elm St', 'Chicago');
+INSERT INTO company (company_name, city) VALUES 
+('First Bank Corporation', 'New York'),
+('Small Bank Corporation', 'Chicago'),
+('Tech Solutions', 'Los Angeles');
+INSERT INTO works (emp_name, company_name, salary) VALUES 
+('Alice', 'First Bank Corporation', 12000.00),
+('Bob', 'Small Bank Corporation', 9000.00),
+('Charlie', 'First Bank Corporation', 8000.00),
+('David', 'Tech Solutions', 15000.00),
+('Eve', 'First Bank Corporation', 11000.00);
+INSERT INTO manages (emp_name, manager_name) VALUES 
+('Alice', 'Charlie'),
+('Eve', 'Alice');
+-- 1
+SELECT emp_name 
+FROM works
+WHERE company_name='First Bank Corporation';
+-- 2
+SELECT emp_name 
+FROM works
+WHERE company_name<>'First Bank Corporation';
+-- 3
+SELECT company_name, COUNT(emp_name) AS employee_count
+FROM works
+GROUP BY company_name
+ORDER BY employee_count DESC LIMIT 1;
+-- 4
+SELECT company_name
+FROM company
+WHERE city IN (SELECT city FROM company WHERE company_name = 'Small Bank Corporation')
+GROUP BY company_name
+HAVING COUNT(DISTINCT city) = (SELECT COUNT(DISTINCT city) FROM company WHERE company_name = 'Small Bank Corporation');
+-- 5
+SELECT employee.emp_name,employee.street,employee.city,works.salary
+FROM works
+JOIN employee ON works.emp_name=employee.emp_name
+WHERE salary>'10000'; 
+-- 6
+UPDATE works
+SET salary = salary * 1.10
+WHERE company_name = 'First Bank Corporation';
+SELECT * FROM works;
+-- 7
+SELECT manages.emp_name AS Employee, manages.manager_name AS Manager
+FROM manages;
+-- 8
+SELECT employee.emp_name,employee.street,employee.city,works.salary
+FROM employee
+JOIN works ON employee.emp_name=works.emp_name
+WHERE company_name='First Bank Corporation' AND salary>'10000';
+-- 9
+SELECT company_name
+FROM works
+GROUP BY company_name
+HAVING AVG(salary) > (SELECT AVG(salary) FROM works WHERE company_name = 'First Bank Corporation');

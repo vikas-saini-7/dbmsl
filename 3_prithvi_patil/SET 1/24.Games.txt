@@ -1,0 +1,35 @@
+1.
+use DYPIT; // Switch to or create the DYPIT database
+db.createCollection("games"); // Create the `games` collection
+
+2.
+db.games.insertMany([
+    { name: "Chess", gametype: "Strategy", rating: 95, achievements: [] },
+    { name: "FIFA", gametype: "Sports", rating: 89, achievements: [] },
+    { name: "Call of Duty", gametype: "Action", rating: 92, achievements: [] },
+    { name: "Minecraft", gametype: "Sandbox", rating: 97, achievements: [] },
+    { name: "Among Us", gametype: "Party", rating: 85, achievements: [] }
+]);
+
+3.
+db.games.find().pretty();
+
+4.
+db.games.find().sort({ rating: -1 }).limit(3);
+
+5.
+db.games.updateOne(
+    { name: "Minecraft" },
+    { $set: { achievements: ["Game Master", "Speed Demon"] } }
+);
+
+db.games.updateOne(
+    { name: "Call of Duty" },
+    { $set: { achievements: ["Game Master", "Speed Demon"] } }
+);
+
+6.
+db.games.find({ achievements: { $all: ["Game Master", "Speed Demon"] } });
+
+7.
+db.games.find({ achievements: { $exists: true, $not: { $size: 0 } } });

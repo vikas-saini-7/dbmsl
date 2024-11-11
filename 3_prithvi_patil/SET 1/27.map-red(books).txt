@@ -1,0 +1,39 @@
+use library;  // Create or switch to the 'library' database
+db.createCollection("books");  // Create the 'books' collection
+
+db.books.insertMany([
+    { title: "Book A", pages: 200 },
+    { title: "Book B", pages: 300 },
+    { title: "Book C", pages: 150 },
+    { title: "Book D", pages: 350 },
+    { title: "Book E", pages: 500 }
+]);
+
+//Use MapReduce to Count Small and Big Books
+//The map function will emit a classification (either "Small" or "Big") based on the number of pages in the book.
+
+var mapFunction = function() {
+    if (this.pages < 250) {
+        emit("Small", 1);  // Emit "Small" for books with less than 250 pages
+    } else {
+        emit("Big", 1);  // Emit "Big" for books with 250 pages or more
+    }
+};
+
+//The reduce function will sum the values for each classification (either "Small" or "Big") to get the total count.
+
+var reduceFunction = function(key, values) {
+    return Array.sum(values);  // Sum up the values (counts) for each category
+};
+
+//Execute the MapReduce Query:
+
+db.books.mapReduce(
+    mapFunction,   // The map function defined above
+    reduceFunction, // The reduce function defined above
+    { out: "book_size_count" }  // The result will be stored in the "book_size_count" collection
+);
+
+//View the Results
+
+db.book_size_count.find().pretty();

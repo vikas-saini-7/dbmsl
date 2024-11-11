@@ -1,0 +1,40 @@
+//Step 1: Import zip.json
+//Assuming the file zip.json has a structure similar to the following, where each document contains a state and pop field (for the state and population):
+
+{
+    "city": "New York",
+    "state": "NY",
+    "pop": 8175133
+}
+
+//You can import the zip.json file into the DYPIT database as follows:
+
+mongoimport --db DYPIT --collection zips --file zip.json
+
+//Step 2: Use MapReduce to Find Total Population in Each State
+//Map Function:The map function will emit the state as the key and the population (pop) as the value.
+
+var mapFunction = function() {
+    emit(this.state, this.pop); // Emit the state as the key and population as the value
+};
+
+//Reduce Function:
+//The reduce function will sum up the population for each state.
+
+var reduceFunction = function(key, values) {
+    return Array.sum(values); // Sum up the population values for the given state
+};
+
+//Execute the MapReduce Query:
+//To execute the map-reduce operation, we will use the mapReduce() function:
+
+db.zips.mapReduce(
+    mapFunction,   // The map function defined earlier
+    reduceFunction, // The reduce function defined earlier
+    { out: "state_population" }  // The result will be stored in the "state_population" collection
+);
+
+//Step 3: View the Results
+
+db.state_population.find().pretty();
+

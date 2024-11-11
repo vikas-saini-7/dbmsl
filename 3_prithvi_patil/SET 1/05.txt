@@ -1,0 +1,106 @@
+CREATE DATABASE Hotelss;
+USE Hotelss;
+CREATE TABLE Hotel (
+    HotelNo INT PRIMARY KEY,
+    Name VARCHAR(100),
+    City VARCHAR(100)
+);
+
+CREATE TABLE Room (
+    RoomNo INT,
+    HotelNo INT,
+    Type VARCHAR(50),
+    Price DECIMAL(10, 2),
+    PRIMARY KEY (RoomNo, HotelNo),
+    FOREIGN KEY (HotelNo) REFERENCES Hotel(HotelNo)
+);
+
+CREATE TABLE Guest (
+    GuestNo INT PRIMARY KEY,
+    GuestName VARCHAR(100),
+    GuestAddress VARCHAR(255)
+);
+
+CREATE TABLE Booking (
+    HotelNo INT,
+    GuestNo INT,
+    DateFrom DATE,
+    DateTo DATE,
+    RoomNo INT,
+    PRIMARY KEY (HotelNo, GuestNo, RoomNo),
+    FOREIGN KEY (HotelNo) REFERENCES Hotel(HotelNo),
+    FOREIGN KEY (GuestNo) REFERENCES Guest(GuestNo),
+    FOREIGN KEY (RoomNo, HotelNo) REFERENCES Room(RoomNo, HotelNo)
+);
+
+INSERT INTO Hotel (HotelNo, Name, City) VALUES
+(1, 'Grosvenor Hotel', 'London'),
+(2, 'Royal Park Hotel', 'London'),
+(3, 'Sunset Inn', 'Brighton');
+
+INSERT INTO Room (RoomNo, HotelNo, Type, Price) VALUES
+(101, 1, 'Single', 75.00),
+(102, 1, 'Double', 120.00),
+(103, 1, 'Family', 150.00),
+(104, 2, 'Single', 60.00),
+(105, 2, 'Double', 95.00),
+(106, 3, 'Family', 140.00);
+
+INSERT INTO Guest (GuestNo, GuestName, GuestAddress) VALUES
+(101, 'Alice Johnson', '123 Elm St, London'),
+(102, 'Bob Smith', '456 Oak Rd, London'),
+(103, 'Charlie Brown', '789 Pine Ave, Brighton');
+
+INSERT INTO Booking (HotelNo, GuestNo, DateFrom, DateTo, RoomNo) VALUES
+(1, 101, '2024-11-01', '2024-11-05', 101),
+(1, 102, '2024-11-02', '2024-11-07', 102),
+(2, 103, '2024-11-01', '2024-11-04', 104),
+(2, 102, '2024-11-05', '2024-11-10', 105);
+
+-- 1
+SELECT * FROM Hotel;
+-- 2
+SELECT COUNT(*) FROM Hotel;
+-- 3
+SELECT Type, Price
+FROM Room
+WHERE HotelNo = 1;
+-- 4
+SELECT HotelNo, COUNT(*) AS NumberOfRooms
+FROM Room
+GROUP BY HotelNo;
+-- 5
+SELECT GuestName, GuestAddress
+FROM Guest
+JOIN Booking ON Guest.GuestNo = Booking.GuestNo
+WHERE Booking.HotelNo = 1
+AND Booking.DateFrom <= '2024-11-05'
+AND Booking.DateTo >= '2024-11-06';
+-- 6
+SELECT Type, Price
+FROM Room
+WHERE (Type = 'Double' OR Type = 'Family')
+AND Price < 40.00
+ORDER BY Price ASC;
+-- 7
+SELECT COUNT(DISTINCT GuestNo)
+FROM Booking
+WHERE DateFrom BETWEEN '2024-11-01' AND '2024-11-09';
+-- 8
+SELECT SUM(Room.Price)
+FROM Booking
+JOIN Room ON Booking.RoomNo = Room.RoomNo AND Booking.HotelNo = Room.HotelNo
+WHERE Booking.HotelNo = 1
+AND Booking.DateFrom <= '2024-11-05'
+AND Booking.DateTo >= '2024-11-06';
+-- 9
+SELECT Room.HotelNo, Type, COUNT(*) AS BookingsCount
+FROM Room
+JOIN Booking ON Room.RoomNo = Booking.RoomNo AND Room.HotelNo = Booking.HotelNo
+JOIN Hotel ON Hotel.HotelNo = Room.HotelNo
+WHERE Hotel.City = 'London'
+GROUP BY Room.HotelNo, Type
+ORDER BY Room.HotelNo, BookingsCount DESC;
+-- 10
+UPDATE Room
+SET Price = Price * 1.05;

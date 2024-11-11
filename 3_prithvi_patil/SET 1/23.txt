@@ -1,0 +1,46 @@
+1. Import zip.json
+Ensure MongoDB is running and navigate to the directory containing the zip.json file.
+
+Run the following command in the terminal to import the dataset:
+
+mongoimport --db DYPIT --collection zips --file zip.json
+
+2. Create Indexes
+a. Create a Single Field Index
+For the pop field:
+
+db.zips.createIndex({ pop: 1 });
+
+b. Create a Composite Index
+For the state and city fields:
+
+db.zips.createIndex({ state: 1, city: 1 });
+
+c. Create a Multikey Index
+For an array field (if applicable; assuming loc is an array):
+
+db.zips.createIndex({ loc: 1 });
+
+3. Fire Queries
+a. Display all cities having population above 1600
+
+db.zips.find({ pop: { $gt: 1600 } }).pretty();
+
+Analysis:
+With the single-field index on pop, this query will use the index to filter results, making it faster compared to a full collection scan.
+
+b. Display all cities in state "KS"
+
+db.zips.find({ state: "KS" }).pretty();
+
+Analysis:
+This query will benefit from the composite index on state and city.
+If the query is frequent and uses only state, consider creating a single-field index on state.
+
+c. Display location of city "TIMKEN"
+
+db.zips.find({ city: "TIMKEN" }, { loc: 1, _id: 0 }).pretty();
+
+Analysis:
+If the city field is queried frequently, the composite index (state, city) can improve performance.
+Alternatively, you could create a single-field index on city if this is a common access pattern.
