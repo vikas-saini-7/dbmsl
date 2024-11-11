@@ -1,0 +1,86 @@
+CREATE DATABASE bank;
+USE bank;
+
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50),
+    city VARCHAR(50),
+    PRIMARY KEY (cname)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10, 2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10, 2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT INTO Branch (bname, city) VALUES
+('Perryridge', 'New York'),
+('Maplewood', 'Los Angeles'),
+('Oakridge', 'Chicago');
+
+INSERT INTO Customers (cname, city) VALUES
+('Anil', 'New York'),
+('John', 'Chicago'),
+('Mike', 'Los Angeles'),
+('Sara', 'Chicago'),
+('Emma', 'New York');
+
+INSERT INTO Deposit (actno, cname, bname, amount, adate) VALUES
+(101, 'Anil', 'Perryridge', 5000.00, '1996-12-05'),
+(102, 'John', 'Maplewood', 3000.00, '1996-06-15'),
+(103, 'Mike', 'Oakridge', 6000.00, '1997-01-10'),
+(104, 'Sara', 'Oakridge', 2000.00, '1996-07-25'),
+(105, 'Emma', 'Perryridge', 4500.00, '1996-11-20');
+
+INSERT INTO Borrow (loanno, cname, bname, amount) VALUES
+(1, 'Anil', 'Perryridge', 15000.00),
+(2, 'John', 'Maplewood', 20000.00),
+(3, 'Mike', 'Oakridge', 25000.00),
+(4, 'Sara', 'Oakridge', 5000.00),
+(5, 'Emma', 'Perryridge', 10000.00);
+-- 1
+SELECT cname
+FROM Deposit
+WHERE amount > 4000;
+-- 2
+SELECT adate
+FROM Deposit
+WHERE cname = 'Anil';
+-- 3
+SELECT actno, amount
+FROM Deposit
+WHERE adate BETWEEN '1996-12-01' AND '1997-05-01';
+-- 4
+SELECT AVG(amount) AS avg_balance
+FROM Deposit
+WHERE bname = 'Perryridge';
+-- 5
+SELECT bname
+FROM Deposit
+GROUP BY bname
+HAVING AVG(amount) > 1200;
+-- 6
+DELETE FROM Deposit
+WHERE amount < 5000;
+-- 7
+CREATE VIEW Deposit_View AS
+SELECT actno, cname, bname, amount, adate
+FROM Deposit;

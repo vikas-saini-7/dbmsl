@@ -1,0 +1,39 @@
+use social_network;  // Switch to the desired database
+
+db.Social_Media.insertMany([
+  { User_Id: 1, User_Name: "Alice", No_of_Posts: 50, No_of_Friends: 5, Friends_List: ["Bob", "Charlie"], Interests: ["Reading", "Traveling"] },
+  { User_Id: 2, User_Name: "Bob", No_of_Posts: 200, No_of_Friends: 10, Friends_List: ["Alice", "Charlie", "David"], Interests: ["Music", "Gaming"] },
+  { User_Id: 3, User_Name: "Charlie", No_of_Posts: 150, No_of_Friends: 3, Friends_List: ["Alice", "David"], Interests: ["Sports", "Photography"] },
+  { User_Id: 4, User_Name: "David", No_of_Posts: 80, No_of_Friends: 2, Friends_List: ["Charlie"], Interests: ["Cooking", "Fitness"] },
+  { User_Id: 5, User_Name: "Eve", No_of_Posts: 120, No_of_Friends: 7, Friends_List: ["Alice", "Bob", "Frank"], Interests: ["Dancing", "Coding"] },
+  { User_Id: 6, User_Name: "Frank", No_of_Posts: 90, No_of_Friends: 6, Friends_List: ["Eve", "Alice"], Interests: ["Movies", "Art"] },
+  { User_Id: 7, User_Name: "Grace", No_of_Posts: 300, No_of_Friends: 15, Friends_List: ["Alice", "Eve"], Interests: ["Blogging", "Fitness"] },
+  { User_Id: 8, User_Name: "Hank", No_of_Posts: 30, No_of_Friends: 1, Friends_List: ["Alice"], Interests: ["Cooking"] },
+  { User_Id: 9, User_Name: "Ivy", No_of_Posts: 110, No_of_Friends: 8, Friends_List: ["Alice", "Grace", "Bob"], Interests: ["Fitness", "Yoga"] },
+  { User_Id: 10, User_Name: "Jack", No_of_Posts: 75, No_of_Friends: 3, Friends_List: ["David", "Hank"], Interests: ["Cycling", "Traveling"] },
+  { User_Id: 11, User_Name: "Kate", No_of_Posts: 85, No_of_Friends: 9, Friends_List: ["Ivy", "Grace"], Interests: ["Reading", "Photography"] },
+  { User_Id: 12, User_Name: "Leo", No_of_Posts: 60, No_of_Friends: 4, Friends_List: ["Jack", "Hank"], Interests: ["Cooking", "Gaming"] },
+  { User_Id: 13, User_Name: "Mona", No_of_Posts: 40, No_of_Friends: 2, Friends_List: ["Bob", "Grace"], Interests: ["Art", "Yoga"] },
+  { User_Id: 14, User_Name: "Nick", No_of_Posts: 160, No_of_Friends: 5, Friends_List: ["Charlie", "Eve"], Interests: ["Fitness", "Traveling"] },
+  { User_Id: 15, User_Name: "Olivia", No_of_Posts: 130, No_of_Friends: 12, Friends_List: ["Frank", "Kate", "Leo"], Interests: ["Cycling", "Movies"] },
+  { User_Id: 16, User_Name: "Paul", No_of_Posts: 45, No_of_Friends: 5, Friends_List: ["Grace", "Bob"], Interests: ["Cooking", "Art"] },
+  { User_Id: 17, User_Name: "Quincy", No_of_Posts: 25, No_of_Friends: 1, Friends_List: ["Alice"], Interests: ["Reading", "Yoga"] },
+  { User_Id: 18, User_Name: "Rita", No_of_Posts: 95, No_of_Friends: 4, Friends_List: ["Alice", "Bob", "Grace"], Interests: ["Dancing", "Blogging"] },
+  { User_Id: 19, User_Name: "Sam", No_of_Posts: 190, No_of_Friends: 9, Friends_List: ["Jack", "David"], Interests: ["Gaming", "Photography"] },
+  { User_Id: 20, User_Name: "Tom", No_of_Posts: 210, No_of_Friends: 11, Friends_List: ["Kate", "Ivy", "Olivia"], Interests: ["Music", "Fitness"] }
+]);
+
+// 1
+db.Social_Media.find().pretty();
+
+// 2
+db.Social_Media.find({ No_of_Posts: { $gt: 100 } });
+
+// 3
+db.Social_Media.find({}, { User_Name: 1, Friends_List: 1, _id: 0 });
+
+// 4
+db.Social_Media.find({ No_of_Friends: { $gt: 5 } }, { User_Id: 1, Friends_List: 1, _id: 0 });
+
+// 5
+db.Social_Media.find().sort({ No_of_Posts: -1 });

@@ -1,0 +1,78 @@
+-- Create the Employee table
+CREATE TABLE Employee (
+    emp_id INT PRIMARY KEY,
+    dept_id INT,
+    emp_name VARCHAR(100),
+    DoJ DATE,
+    salary DECIMAL(10, 2),
+    commission DECIMAL(10, 2),
+    job_title VARCHAR(50)
+);
+
+-- Create the Salary_Increment table
+CREATE TABLE Salary_Increment (
+    emp_id INT PRIMARY KEY,
+    new_salary DECIMAL(10, 2),
+    FOREIGN KEY (emp_id) REFERENCES Employee(emp_id)
+);
+
+-- Insert sample data into Employee table
+INSERT INTO Employee (emp_id, dept_id, emp_name, DoJ, salary, commission, job_title) VALUES
+(115, 101, 'John Doe', '2010-03-15', 50000, 5000, 'Software Engineer');
+INSERT INTO Employee (emp_id, dept_id, emp_name, DoJ, salary, commission, job_title) VALUES
+(116, 102, 'Jane Smith', '2017-06-25', 60000, 6000, 'HR Manager');
+INSERT INTO Employee (emp_id, dept_id, emp_name, DoJ, salary, commission, job_title) VALUES
+(117, 103, 'Michael Johnson', '2020-08-01', 45000, 4500, 'Sales Executive');
+
+-- Stored Procedure
+DELIMITER //
+
+CREATE PROCEDURE CalculateNewSalary(IN p_emp_id INT)
+BEGIN
+    DECLARE v_doj DATE;
+    DECLARE v_salary DECIMAL(10, 2);
+    DECLARE v_experience INT;
+    DECLARE v_new_salary DECIMAL(10, 2);
+    DECLARE done INT DEFAULT 0;
+
+    -- Handler for case where employee is not found
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+
+    -- Fetch the employee details using the provided emp_id
+    SELECT DoJ, salary INTO v_doj, v_salary
+    FROM Employee
+    WHERE emp_id = p_emp_id;
+
+    -- Check if the employee ID was found
+    IF done = 1 THEN
+        SELECT 'Error: Employee ID not found or invalid.' AS Message;
+    ELSE
+        -- Calculate the years of experience
+        SET v_experience = TIMESTAMPDIFF(YEAR, v_doj, CURDATE());
+
+        -- Determine the new salary based on experience
+        IF v_experience > 10 THEN
+            SET v_new_salary = v_salary * 1.20;  -- 20% increase
+        ELSEIF v_experience > 5 THEN
+            SET v_new_salary = v_salary * 1.10;  -- 10% increase
+        ELSE
+            SET v_new_salary = v_salary * 1.05;  -- 5% increase
+        END IF;
+
+        -- Insert the new salary into the Salary_Increment table
+        INSERT INTO Salary_Increment (emp_id, new_salary)
+        VALUES (p_emp_id, v_new_salary)
+        ON DUPLICATE KEY UPDATE new_salary = v_new_salary;
+
+        -- Commit the transaction
+        COMMIT;
+
+        -- Output the new salary
+        SELECT CONCAT('New salary for employee ID ', p_emp_id, ' is ', v_new_salary) AS Message;
+    END IF;
+END //
+
+DELIMITER ;
+
+-- To execute the procedure for a specific employee ID (e.g., 115):
+CALL CalculateNewSalary(115);

@@ -1,0 +1,46 @@
+CREATE TABLE client_master (
+    client_id NUMBER PRIMARY KEY,
+    client_name VARCHAR2(100),
+    bal_due NUMBER(10, 2)
+);
+
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (101, 'John Doe', 500.00);
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (102, 'Jane Smith', -50.00); 
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (103, 'Michael Brown', 100.00);
+INSERT INTO client_master (client_id, client_name, bal_due) VALUES (104, 'Emily Davis', 200.00);
+
+COMMIT;
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    -- Define a user-defined exception
+    negative_balance EXCEPTION;
+    -- Variable to store balance due value for the client
+    v_bal_due NUMBER;
+BEGIN
+    -- Fetch the balance due value for the client (roll number entered by the user)
+    SELECT bal_due INTO v_bal_due
+    FROM client_master
+    WHERE client_id = &client_id;
+
+    -- Check if the balance due is less than 0
+    IF v_bal_due < 0 THEN
+        -- Raise the user-defined exception
+        RAISE negative_balance;
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Balance Due is valid: ' || v_bal_due);
+    END IF;
+
+EXCEPTION
+    -- Handle the user-defined exception for negative balance
+    WHEN negative_balance THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Balance due is less than 0. Business Rule Violated.');
+    -- Handle case where no client data is found
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Client not found.');
+    -- Handle any other unexpected error
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/

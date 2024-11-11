@@ -1,0 +1,57 @@
+CREATE DATABASE Baank;
+USE Baank;
+-- 1
+CREATE TABLE Branch (
+    Branch_ID INT PRIMARY KEY,
+    Branch_Name VARCHAR(100),
+    Address VARCHAR(255)
+);
+
+CREATE TABLE Customer (
+    CustID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(255),
+    Phone_no VARCHAR(15),
+    Email_ID VARCHAR(100),
+    Age INT
+);
+
+CREATE TABLE Account (
+    Account_no INT PRIMARY KEY,
+    Branch_ID INT,
+    CustID INT,
+    open_date DATE,
+    Account_type VARCHAR(50),
+    Balance DECIMAL(15,2),
+    FOREIGN KEY (Branch_ID) REFERENCES Branch(Branch_ID),
+    FOREIGN KEY (CustID) REFERENCES Customer(CustID)
+);
+-- 3
+CREATE VIEW Saving_account AS
+SELECT c.CustID, c.Name, c.Cust_Address, c.Phone_no, c.Email_ID, c.Age, a.Account_no, a.open_date, a.Account_type, a.Balance
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+WHERE a.open_date = '2018-08-16' AND a.Account_type = 'Saving';
+-- 4
+UPDATE Customer
+SET Cust_Address = 'Pune'
+WHERE CustID = 103;
+-- 5
+CREATE VIEW Loan_account AS
+SELECT c.CustID, c.Name, c.Cust_Address, c.Phone_no, c.Email_ID, c.Age, a.Account_no, a.open_date, a.Account_type, a.Balance
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+WHERE a.open_date = '2018-02-16' AND a.Account_type = 'Loan';
+-- 6
+CREATE INDEX idx_customer_id ON Customer(CustID);
+-- 7
+CREATE INDEX idx_branch_id ON Branch(Branch_ID);
+-- 8
+CREATE TABLE Customers (
+    CustID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(255),
+    Phone_no VARCHAR(15),
+    Email_ID VARCHAR(100),
+    Age INT
+);

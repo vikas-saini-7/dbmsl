@@ -1,0 +1,79 @@
+CREATE DATABASE Bonk;
+USE Bonk;
+CREATE TABLE Customer (
+    CustID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(200),
+    Phone_no VARCHAR(15),
+    Age INT
+);
+
+CREATE TABLE Branch (
+    Branch_ID INT PRIMARY KEY,
+    Branch_Name VARCHAR(100),
+    Address VARCHAR(200)
+);
+
+CREATE TABLE Account (
+    Account_no INT PRIMARY KEY,
+    Branch_ID INT,
+    CustID INT,
+    date_open DATE,
+    Account_type VARCHAR(50),
+    Balance DECIMAL(10,2),
+    FOREIGN KEY (Branch_ID) REFERENCES Branch(Branch_ID),
+    FOREIGN KEY (CustID) REFERENCES Customer(CustID)
+);
+
+INSERT INTO Customer (CustID, Name, Cust_Address, Phone_no, Age)
+VALUES
+(1, 'John Doe', 'Pune, India', '1234567890', 42),
+(2, 'Jane Smith', 'Mumbai, India', '9876543210', 30),
+(3, 'Alice Brown', 'Pune, India', '1122334455', 38),
+(4, 'Bob Martin', 'Delhi, India', '5566778899', 50),
+(5, 'Eve White', 'Pune, India', '9988776655', 40);
+
+INSERT INTO Branch (Branch_ID, Branch_Name, Address)
+VALUES
+(101, 'Main Branch', 'Pune, India'),
+(102, 'Mumbai Branch', 'Mumbai, India'),
+(103, 'Delhi Branch', 'Delhi, India');
+
+INSERT INTO Account (Account_no, Branch_ID, CustID, date_open, Account_type, Balance) 
+VALUES
+(1001, 101, 1, '2010-01-01', 'Saving Account', 50000),
+(1002, 102, 2, '2015-06-15', 'Current Account', 15000),
+(1003, 103, 3, '2018-03-20', 'Saving Account', 20000),
+(1004, 101, 4, '2012-08-10', 'Fixed Deposit', 30000),
+(1005, 102, 5, '2020-11-01', 'Saving Account', 35000);
+-- 1
+ALTER TABLE Customer
+ADD COLUMN Email_Address VARCHAR(100);
+-- 2
+ALTER TABLE Customer
+CHANGE COLUMN Email_Address Email_ID VARCHAR(100);
+-- 3
+SELECT c.CustID, c.Name, c.Cust_Address, c.Phone_no, c.Age, a.Account_no, a.Balance
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+WHERE a.Balance = (SELECT MAX(Balance) FROM Account);
+-- 4
+SELECT c.CustID, c.Name, c.Cust_Address, c.Phone_no, c.Age, a.Account_no, a.Balance
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+WHERE a.Account_type = 'Saving Account'
+ORDER BY a.Balance ASC
+LIMIT 1;
+-- 5
+SELECT CustID, Name, Cust_Address, Phone_no, Age
+FROM Customer
+WHERE Cust_Address LIKE '%Pune%' AND Age > 35;
+-- 6
+SELECT CustID, Name, Age
+FROM Customer
+ORDER BY Age ASC;
+-- 7
+SELECT c.Name, a.Branch_ID
+FROM Customer c
+JOIN Account a ON c.CustID = a.CustID
+GROUP BY a.Account_type, c.Name, a.Branch_ID;

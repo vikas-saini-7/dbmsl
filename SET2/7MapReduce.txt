@@ -1,0 +1,63 @@
+use book
+
+db.bookCollection.insertMany([
+  { "Title": "Book A", "Author_name": "Author 1", "Borrowed_status": true, "Price": 250 },
+  { "Title": "Book B", "Author_name": "Author 1", "Borrowed_status": false, "Price": 400 },
+  { "Title": "Book C", "Author_name": "Author 2", "Borrowed_status": true, "Price": 350 },
+  { "Title": "Book D", "Author_name": "Author 2", "Borrowed_status": false, "Price": 150 },
+  { "Title": "Book E", "Author_name": "Author 3", "Borrowed_status": true, "Price": 450 },
+  { "Title": "Book F", "Author_name": "Author 3", "Borrowed_status": false, "Price": 600 }
+]);
+
+// 1
+
+var mapFunction1 = function() {
+  emit(this.Author_name, { titles: [this.Title] });
+};
+
+var reduceFunction1 = function(author, books) {
+  return {
+    titles: Array.prototype.concat.apply([], books.map(book => book.titles))
+  };
+};
+
+db.bookCollection.mapReduce(mapFunction1, reduceFunction1, { out: "author_books_list" });
+
+db.author_books_list.find();
+
+// 2
+
+var mapFunction2 = function() {
+  if (this.Borrowed_status === true) {
+    emit(this.Author_name, { titles: [this.Title] });
+  }
+};
+
+var reduceFunction2 = function(author, books) {
+  return {
+    titles: Array.prototype.concat.apply([], books.map(book => book.titles))
+  };
+};
+
+db.bookCollection.mapReduce(mapFunction2, reduceFunction2, { out: "borrowed_books_by_author" });
+
+db.borrowed_books_by_author.find();
+
+// 3
+
+var mapFunction3 = function() {
+  if (this.Price > 300) {
+    emit(this.Author_name, { titles: [this.Title] });
+  }
+};
+
+var reduceFunction3 = function(author, books) {
+  return {
+    titles: Array.prototype.concat.apply([], books.map(book => book.titles))
+  };
+};
+
+db.bookCollection.mapReduce(mapFunction3, reduceFunction3, { out: "expensive_books_by_author" });
+
+db.expensive_books_by_author.find();
+

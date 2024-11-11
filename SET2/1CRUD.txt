@@ -1,0 +1,59 @@
+use school
+
+db.Student.insertMany([
+  { "Roll_No": "A01", "Name": "Alice", "Class": "SE", "Marks": 75, "Address": "123 Maple St", "Enrolled_Courses": ["DBMS", "TOC", "Maths"] },
+  { "Roll_No": "A02", "Name": "Bob", "Class": "TE", "Marks": 85, "Address": "456 Oak St", "Enrolled_Courses": ["DBMS", "English", "Physics"] },
+  { "Roll_No": "A03", "Name": "Charlie", "Class": "BE", "Marks": 65, "Address": "789 Pine St", "Enrolled_Courses": ["TOC", "Maths", "Chemistry"] },
+  { "Roll_No": "A04", "Name": "David", "Class": "SE", "Marks": 55, "Address": "101 Birch St", "Enrolled_Courses": ["English", "Maths", "DBMS"] },
+  { "Roll_No": "A05", "Name": "Eve", "Class": "TE", "Marks": 95, "Address": "202 Cedar St", "Enrolled_Courses": ["Physics", "DBMS", "TOC"] },
+  { "Roll_No": "A06", "Name": "Frank", "Class": "BE", "Marks": 45, "Address": "303 Walnut St", "Enrolled_Courses": ["DBMS", "History", "TOC"] },
+  { "Roll_No": "A07", "Name": "Grace", "Class": "SE", "Marks": 88, "Address": "404 Elm St", "Enrolled_Courses": ["DBMS", "TOC", "Maths"] },
+  { "Roll_No": "A08", "Name": "Hank", "Class": "TE", "Marks": 52, "Address": "505 Willow St", "Enrolled_Courses": ["Maths", "Chemistry", "DBMS"] },
+  { "Roll_No": "A09", "Name": "Ivy", "Class": "BE", "Marks": 32, "Address": "606 Ash St", "Enrolled_Courses": ["TOC", "Physics", "History"] },
+  { "Roll_No": "A10", "Name": "Jack", "Class": "SE", "Marks": 92, "Address": "707 Poplar St", "Enrolled_Courses": ["DBMS", "English", "Maths"] }
+]);
+
+// 1
+
+db.Student.find(
+  { Enrolled_Courses: { $all: ["DBMS", "TOC"] } },
+  { Name: 1, _id: 0 }
+);
+
+// 2 
+
+db.Student.find(
+  { $or: [{ Marks: { $gt: 50 } }, { Class: "TE" }] },
+  { Roll_No: 1, Class: 1, _id: 0 }
+);
+
+// 3
+
+db.Student.updateOne(
+  { Roll_No: "A10" },
+  {
+    $set: {
+      Name: "Jack Updated",
+      Class: "SE",
+      Marks: 95,
+      Address: "New Address for Jack",
+      Enrolled_Courses: ["DBMS", "Maths", "Physics"]
+    }
+  }
+);
+
+// 4
+
+db.Student.find({}, { Name: 1, Marks: 1, _id: 0 })
+  .sort({ Marks: -1 })
+  .skip(2)
+  .limit(2);
+
+// 5
+
+db.Student.deleteMany({ Marks: { $lt: 20 } });
+
+// 6
+
+db.Student.deleteOne({});
+

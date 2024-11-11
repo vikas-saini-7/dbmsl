@@ -1,0 +1,57 @@
+CREATE TABLE account_master (
+    account_id NUMBER PRIMARY KEY, 
+    balance NUMBER(10, 2)           
+);
+
+INSERT INTO account_master (account_id, balance) VALUES (1001, 5000.00);
+INSERT INTO account_master (account_id, balance) VALUES (1002, 300.00);
+INSERT INTO account_master (account_id, balance) VALUES (1003, 1500.00);
+INSERT INTO account_master (account_id, balance) VALUES (1004, 7500.00);
+INSERT INTO account_master (account_id, balance) VALUES (1005, 1200.00);
+
+COMMIT;
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_account_id NUMBER := &AccountID;  -- Account ID entered by the user
+    v_withdraw_amount NUMBER := &WithdrawAmount;  -- Withdrawal amount entered by the user
+    v_balance NUMBER;                   -- Variable to store the current balance of the account
+
+    -- Define a user-defined exception for insufficient funds
+    insufficient_funds EXCEPTION;
+
+BEGIN
+    -- Fetch the current balance for the specified account
+    SELECT balance INTO v_balance
+    FROM account_master
+    WHERE account_id = v_account_id;
+
+    -- Check if the withdrawal amount is greater than the current balance
+    IF v_withdraw_amount > v_balance THEN
+        -- Raise the user-defined exception
+        RAISE insufficient_funds;
+    ELSE
+        -- Update the balance after withdrawal
+        UPDATE account_master
+        SET balance = balance - v_withdraw_amount
+        WHERE account_id = v_account_id;
+
+        DBMS_OUTPUT.PUT_LINE('Withdrawal successful. New balance: ' || (v_balance - v_withdraw_amount));
+    END IF;
+
+    -- Commit changes to the database
+    COMMIT;
+
+EXCEPTION
+    -- Handling the user-defined exception for insufficient funds
+    WHEN insufficient_funds THEN
+        DBMS_OUTPUT.PUT_LINE('Error: Insufficient funds for withdrawal.');
+    -- Handle case where account ID does not exist
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Account ID not found in the table.');
+    -- Handle any other unexpected error
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An error occurred: ' || SQLERRM);
+END;
+/

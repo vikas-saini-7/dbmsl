@@ -1,0 +1,49 @@
+CREATE TABLE EMP (
+    e_no NUMBER PRIMARY KEY,
+    d_no NUMBER,
+    salary NUMBER
+);
+
+CREATE TABLE dept_salary (
+    d_no NUMBER PRIMARY KEY,
+    avg_salary NUMBER
+);
+
+-- Sample data
+INSERT INTO EMP (e_no, d_no, salary) VALUES (1, 101, 50000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (2, 101, 60000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (3, 102, 55000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (4, 103, 45000);
+INSERT INTO EMP (e_no, d_no, salary) VALUES (5, 102, 52000);
+
+COMMIT;
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    -- Parameterized cursor to calculate average salary per department
+    CURSOR c_dept_salary (p_d_no NUMBER) IS
+        SELECT AVG(salary) AS avg_salary
+        FROM EMP
+        WHERE d_no = p_d_no
+        GROUP BY d_no;
+
+    v_avg_salary NUMBER;
+BEGIN
+    FOR dept IN (SELECT DISTINCT d_no FROM EMP) LOOP
+        OPEN c_dept_salary(dept.d_no);
+        FETCH c_dept_salary INTO v_avg_salary;
+        
+        IF c_dept_salary%FOUND THEN
+            -- Insert the department's average salary into dept_salary
+            INSERT INTO dept_salary (d_no, avg_salary)
+            VALUES (dept.d_no, v_avg_salary);
+            DBMS_OUTPUT.PUT_LINE('Inserted average salary for department ' || dept.d_no || ': ' || v_avg_salary);
+        END IF;
+
+        CLOSE c_dept_salary;
+    END LOOP;
+
+    COMMIT;
+END;
+/

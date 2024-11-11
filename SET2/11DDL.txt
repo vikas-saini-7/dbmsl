@@ -1,0 +1,66 @@
+CREATE DATABASE Bonks;
+USE Bonks;
+
+CREATE TABLE Customer (
+    CustID INT PRIMARY KEY,
+    Name VARCHAR(100),
+    Cust_Address VARCHAR(200),
+    Phone_no VARCHAR(15),
+    Email_ID VARCHAR(100),
+    Age INT
+);
+
+CREATE TABLE Branch (
+    Branch_ID INT PRIMARY KEY,
+    Branch_Name VARCHAR(100),
+    Address VARCHAR(200)
+);
+
+CREATE TABLE Account (
+    Account_no INT PRIMARY KEY,
+    Branch_ID INT,
+    CustID INT,
+    date_open DATE,
+    Account_type VARCHAR(50),
+    Balance DECIMAL(10,2),
+    FOREIGN KEY (Branch_ID) REFERENCES Branch(Branch_ID),
+    FOREIGN KEY (CustID) REFERENCES Customer(CustID)
+);
+
+INSERT INTO Customer (CustID, Name, Cust_Address, Phone_no, Email_ID, Age)
+VALUES
+(1, 'John Doe', 'Pune, India', '1234567890', 'johndoe@email.com', 42),
+(2, 'Jane Smith', 'Mumbai, India', '9876543210', 'janesmith@email.com', 35),
+(3, 'Alice Brown', 'Delhi, India', '1122334455', 'alicebrown@email.com', 40),
+(4, 'Bob Martin', 'Bangalore, India', '5566778899', 'bobmartin@email.com', 50),
+(5, 'Eve White', 'Chennai, India', '9988776655', 'evewhite@email.com', 29);
+
+INSERT INTO Branch (Branch_ID, Branch_Name, Address)
+VALUES
+(101, 'Main Branch', 'Pune, India'),
+(102, 'Mumbai Branch', 'Mumbai, India'),
+(103, 'Delhi Branch', 'Delhi, India');
+
+INSERT INTO Account (Account_no, Branch_ID, CustID, date_open, Account_type, Balance)
+VALUES
+(1001, 101, 1, '2010-06-15', 'Saving Account', 50000),
+(1002, 102, 2, '2015-06-15', 'Current Account', 15000),
+(1003, 103, 3, '2018-03-20', 'Saving Account', 20000),
+(1004, 101, 4, '2012-08-10', 'Fixed Deposit', 30000),
+(1005, 102, 5, '2020-11-01', 'Saving Account', 35000);
+-- 1
+CREATE INDEX idx_account_no ON Account(Account_no);
+-- 2
+CREATE VIEW Customer_Info AS
+SELECT CustID, Name, Cust_Address, Phone_no, Email_ID, Age
+FROM Customer
+WHERE Age < 45;
+-- 3
+UPDATE Account
+SET date_open = '2017-04-16'
+WHERE date_open = '2020-11-01';
+-- 4
+-- IDK
+-- 5
+CREATE VIEW Branch_info AS
+SELECT * FROM Branch;

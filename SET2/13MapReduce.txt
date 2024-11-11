@@ -1,0 +1,79 @@
+use school;  // Switch to the 'school' database
+
+// Insert some example student data into the 'students' collection
+db.students.insertMany([
+  { roll_no: 1, name: "Alice", class: "TE", dept: "CSE", aggregate_marks: 85 },
+  { roll_no: 2, name: "Bob", class: "TE", dept: "IT", aggregate_marks: 75 },
+  { roll_no: 3, name: "Charlie", class: "SE", dept: "CSE", aggregate_marks: 90 },
+  { roll_no: 4, name: "David", class: "SE", dept: "CSE", aggregate_marks: 80 },
+  { roll_no: 5, name: "Eve", class: "BE", dept: "IT", aggregate_marks: 70 },
+  { roll_no: 6, name: "Frank", class: "BE", dept: "CSE", aggregate_marks: 88 },
+  { roll_no: 7, name: "Grace", class: "BE", dept: "CSE", aggregate_marks: 92 }
+]);
+
+// 1
+var mapTotalMarks = function() {
+  if (this.class == "TE") {
+    emit(this.dept, this.aggregate_marks);  // Emit department as key, marks as value
+  }
+};
+
+var reduceTotalMarks = function(key, values) {
+  return Array.sum(values);  // Sum all the marks for each department
+};
+
+db.students.mapReduce(
+  mapTotalMarks,
+  reduceTotalMarks,
+  { out: "total_marks_by_dept" }
+);
+
+db.total_marks_by_dept.find();
+
+// 2
+var mapHighestMarks = function() {
+  if (this.class == "SE") {
+    emit(this.dept, this.aggregate_marks);  // Emit department as key, marks as value
+  }
+};
+
+var reduceHighestMarks = function(key, values) {
+  return Math.max.apply(null, values);  // Return the maximum value of the marks
+};
+
+db.students.mapReduce(
+  mapHighestMarks,
+  reduceHighestMarks,
+  { out: "highest_marks_by_dept" }
+);
+
+db.highest_marks_by_dept.find();
+
+// 3
+var mapAverageMarks = function() {
+  if (this.class == "BE") {
+    emit(this.dept, { totalMarks: this.aggregate_marks, count: 1 });
+  }
+};
+
+var reduceAverageMarks = function(key, values) {
+  var result = { totalMarks: 0, count: 0 };
+  values.forEach(function(value) {
+    result.totalMarks += value.totalMarks;
+    result.count += value.count;
+  });
+  return { totalMarks: result.totalMarks, count: result.count };
+};
+
+var finalizeAverageMarks = function(key, reducedValue) {
+  reducedValue.averageMarks = reducedValue.totalMarks / reducedValue.count;
+  return reducedValue;
+};
+
+db.students.mapReduce(
+  mapAverageMarks,
+  reduceAverageMarks,
+  { out: "average_marks_by_dept", finalize: finalizeAverageMarks }
+);
+
+db.average_marks_by_dept.find();

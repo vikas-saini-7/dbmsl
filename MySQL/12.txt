@@ -1,0 +1,96 @@
+CREATE DATABASE baanks;
+USE baanks;
+
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50),
+    city VARCHAR(50),
+    PRIMARY KEY (cname)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(15, 2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(15, 2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+INSERT INTO Branch (bname, city) VALUES
+('Perryridge', 'New York'),
+('Maplewood', 'Los Angeles'),
+('Oakridge', 'Chicago'),
+('Nagpur', 'Nagpur');
+
+INSERT INTO Customers (cname, city) VALUES
+('Anil', 'Bombay'),
+('John', 'Chicago'),
+('Mike', 'Los Angeles'),
+('Sara', 'Nagpur'),
+('Emma', 'Mumbai'),
+('Sunil', 'Pune');
+
+INSERT INTO Deposit (actno, cname, bname, amount, adate) VALUES
+(101, 'Anil', 'Perryridge', 5000.00, '1996-12-05'),
+(102, 'John', 'Maplewood', 3000.00, '1996-06-15'),
+(103, 'Mike', 'Oakridge', 6000.00, '1997-01-10'),
+(104, 'Sara', 'Nagpur', 2000.00, '1996-07-25'),
+(105, 'Emma', 'Perryridge', 4500.00, '1996-11-20'),
+(106, 'Sunil', 'Nagpur', 3500.00, '1997-02-01');
+
+INSERT INTO Borrow (loanno, cname, bname, amount) VALUES
+(1, 'Anil', 'Perryridge', 15000.00),
+(2, 'John', 'Maplewood', 20000.00),
+(3, 'Mike', 'Oakridge', 25000.00),
+(4, 'Sara', 'Nagpur', 5000.00),
+(5, 'Emma', 'Perryridge', 10000.00),
+(6, 'Sunil', 'Nagpur', 8000.00);
+-- 1
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Branch b ON d.bname = b.bname
+WHERE c.city = 'Bombay' OR b.city = 'Nagpur';
+-- 2
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Branch b ON d.bname = b.bname
+WHERE c.city = b.city;
+-- 3
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Borrow b ON c.cname = b.cname
+WHERE c.city = 'Nagpur';
+-- 4
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Borrow b ON c.cname = b.cname
+WHERE d.amount > 1000 AND b.amount > 2000;
+-- 5
+SELECT DISTINCT c.cname
+FROM Customers c
+JOIN Deposit d ON c.cname = d.cname
+JOIN Branch b ON d.bname = b.bname
+WHERE b.city = (SELECT b.city FROM Branch b 
+                JOIN Deposit d ON b.bname = d.bname 
+                WHERE d.cname = 'Sunil');
+-- 6
+CREATE INDEX idx_deposit_amount ON Deposit(amount);

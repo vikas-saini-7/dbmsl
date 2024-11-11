@@ -1,0 +1,92 @@
+-- Creating the Account table
+CREATE TABLE Account (
+    Account_No INT PRIMARY KEY,
+    Cust_Name VARCHAR(50),
+    Balance DECIMAL(10, 2),
+    NoOfYears INT
+);
+
+-- Creating the Earned_Interest table
+CREATE TABLE Earned_Interest (
+    Account_No INT,
+    Interest_Amt DECIMAL(10, 2),
+    FOREIGN KEY (Account_No) REFERENCES Account(Account_No)
+);
+
+-- Inserting sample data into Account table
+INSERT INTO Account (Account_No, Cust_Name, Balance, NoOfYears) VALUES 
+(1, 'John Doe', 60000.00, 5),
+(2, 'Jane Smith', 40000.00, 3),
+(3, 'Robert Brown', 75000.00, 4),
+(4, 'Emma Davis', 20000.00, 2);
+
+-- 1
+DELIMITER //
+
+CREATE PROCEDURE CalculateInterest (
+    IN p_Account_No INT,
+    IN p_Interest_Rate DECIMAL(5, 2)
+)
+BEGIN
+    DECLARE v_Balance DECIMAL(10, 2);
+    DECLARE v_NoOfYears INT;
+    DECLARE v_Interest_Amt DECIMAL(10, 2);
+
+    -- Get Balance and NoOfYears for the provided Account_No
+    SELECT Balance, NoOfYears
+    INTO v_Balance, v_NoOfYears
+    FROM Account
+    WHERE Account_No = p_Account_No;
+
+    -- Calculate Simple Interest
+    SET v_Interest_Amt = (v_Balance * p_Interest_Rate * v_NoOfYears) / 100;
+
+    -- Insert the calculated Interest into Earned_Interest table
+    INSERT INTO Earned_Interest (Account_No, Interest_Amt)
+    VALUES (p_Account_No, v_Interest_Amt);
+
+    -- Display all records in Earned_Interest table
+    SELECT * FROM Earned_Interest;
+END //
+
+DELIMITER ;
+
+CALL CalculateInterest(1, 5.0);  
+
+-- 2
+DELIMITER //
+
+CREATE FUNCTION GetHighBalanceAccounts ()
+RETURNS TEXT
+DETERMINISTIC
+BEGIN
+    DECLARE result TEXT DEFAULT '';
+    
+    -- Loop through each record with Balance > 50000 and concatenate the details
+    SELECT GROUP_CONCAT(CONCAT('Account_No: ', Account_No, ', Cust_Name: ', Cust_Name, 
+                               ', Balance: ', Balance, ', NoOfYears: ', NoOfYears)
+                        SEPARATOR '\n')
+    INTO result
+    FROM Account
+    WHERE Balance > 50000;
+
+    RETURN result;
+END //
+
+DELIMITER ;
+
+SELECT GetHighBalanceAccounts();
+
+-- OR FOR 2nd
+
+DELIMITER //
+
+CREATE PROCEDURE GetHighBalanceAccounts ()
+BEGIN
+    SELECT * FROM Account WHERE Balance > 50000;
+END //
+
+DELIMITER ;
+
+CALL GetHighBalanceAccounts();
+

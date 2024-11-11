@@ -1,0 +1,82 @@
+CREATE TABLE Employee (
+    emp_id INT PRIMARY KEY,
+    dept_id INT,
+    emp_name VARCHAR(100),
+    DoJ DATE,           -- Date of Joining
+    salary DECIMAL(10, 2),
+    commission DECIMAL(10, 2),
+    job_title VARCHAR(100)
+);
+
+CREATE TABLE Job_History (
+    emp_id INT,
+    old_job_title VARCHAR(100),
+    old_dept_id INT,
+    start_date DATE,
+    end_date DATE,
+    PRIMARY KEY (emp_id, old_job_title, start_date),
+    FOREIGN KEY (emp_id) REFERENCES Employee(emp_id)
+);
+
+-- Insert sample data into the Employee table
+INSERT INTO Employee (emp_id, dept_id, emp_name, DoJ, salary, commission, job_title)
+VALUES
+(1, 101, 'John Doe', '2020-01-01', 50000.00, 5000.00, 'Software Engineer'),
+(2, 102, 'Jane Smith', '2019-05-15', 60000.00, 6000.00, 'HR Manager'),
+(3, 103, 'Alice Johnson', '2021-08-20', 70000.00, 7000.00, 'Sales Manager');
+
+-- Insert sample data into the Job_History table (initially empty)
+INSERT INTO Job_History (emp_id, old_job_title, old_dept_id, start_date, end_date)
+VALUES
+(1, 'Software Engineer', 101, '2020-01-01', '2023-11-10'),
+(2, 'HR Manager', 102, '2019-05-15', '2023-11-10'),
+(3, 'Sales Manager', 103, '2021-08-20', '2023-11-10');
+
+-- 1
+DELIMITER $$
+
+CREATE TRIGGER prevent_salary_decrease
+BEFORE UPDATE ON Employee
+FOR EACH ROW
+BEGIN
+    IF NEW.salary < OLD.salary THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Salary cannot be decreased';
+    END IF;
+END $$
+
+DELIMITER ;
+
+-- 2
+DELIMITER $$
+
+CREATE TRIGGER log_job_title_change
+AFTER UPDATE ON Employee
+FOR EACH ROW
+BEGIN
+    -- Check if the job title has changed
+    IF OLD.job_title != NEW.job_title THEN
+        -- Check if the job history record already exists for the same employee and job title
+        IF NOT EXISTS (
+            SELECT 1 FROM Job_History 
+            WHERE emp_id = OLD.emp_id 
+            AND old_job_title = OLD.job_title 
+            AND start_date = OLD.DoJ
+        ) THEN
+            -- Insert a new job history record
+            INSERT INTO Job_History (emp_id, old_job_title, old_dept_id, start_date, end_date)
+            VALUES (OLD.emp_id, OLD.job_title, OLD.dept_id, OLD.DoJ, CURDATE());
+        END IF;
+    END IF;
+END $$
+
+DELIMITER ;
+
+UPDATE Employee
+SET salary = 45000.00
+WHERE emp_id = 1;
+
+UPDATE Employee
+SET job_title = 'Senior Software Engineer'
+WHERE emp_id = 1;
+

@@ -1,0 +1,44 @@
+CREATE TABLE stud21 (
+    roll NUMBER(4) PRIMARY KEY,
+    att NUMBER(4),
+    status VARCHAR2(1)
+);
+
+CREATE TABLE D_Stud (
+    roll NUMBER(4),
+    detain_date DATE
+);
+
+INSERT INTO stud21 (roll, att, status) VALUES (1001, 80, NULL);
+INSERT INTO stud21 (roll, att, status) VALUES (1002, 70, NULL);
+INSERT INTO stud21 (roll, att, status) VALUES (1003, 60, NULL);
+INSERT INTO stud21 (roll, att, status) VALUES (1004, 90, NULL);
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_students IS
+        SELECT roll, att FROM stud21 WHERE att < 75;
+    v_roll stud21.roll%TYPE;
+    v_att stud21.att%TYPE;
+BEGIN
+    OPEN c_students;
+    LOOP
+        FETCH c_students INTO v_roll, v_att;
+        EXIT WHEN c_students%NOTFOUND;
+
+        -- Update student status to 'D' for detention
+        UPDATE stud21
+        SET status = 'D'
+        WHERE roll = v_roll;
+
+        -- Insert record in D_Stud table
+        INSERT INTO D_Stud (roll, detain_date)
+        VALUES (v_roll, SYSDATE);
+    END LOOP;
+
+    CLOSE c_students;
+    COMMIT;
+    DBMS_OUTPUT.PUT_LINE('Students with attendance below 75% have been marked as detained.');
+END;
+/

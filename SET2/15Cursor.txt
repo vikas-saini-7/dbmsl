@@ -1,0 +1,121 @@
+CREATE TABLE Products (
+    Product_id INT PRIMARY KEY,
+    Product_Name VARCHAR(100),
+    Product_Type VARCHAR(50),
+    Price DECIMAL(10, 2)
+);
+
+INSERT INTO Products (Product_id, Product_Name, Product_Type, Price) VALUES (1, 'T-shirt', 'Apparel', 1500);
+INSERT INTO Products (Product_id, Product_Name, Product_Type, Price) VALUES (2, 'Jeans', 'Apparel', 3500);
+INSERT INTO Products (Product_id, Product_Name, Product_Type, Price) VALUES (3, 'Smartphone', 'Electronics', 12000);
+INSERT INTO Products (Product_id, Product_Name, Product_Type, Price) VALUES (4, 'Laptop', 'Electronics', 55000);
+INSERT INTO Products (Product_id, Product_Name, Product_Type, Price) VALUES (5, 'Jacket', 'Apparel', 7000);
+
+-- 1
+DELIMITER $$
+
+CREATE PROCEDURE display_apparel_by_price_range(
+    IN min_price DECIMAL(10, 2),
+    IN max_price DECIMAL(10, 2)
+)
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE p_id INT;
+    DECLARE p_name VARCHAR(100);
+    DECLARE p_price DECIMAL(10, 2);
+    
+    -- Declare the cursor
+    DECLARE apparel_cursor CURSOR FOR
+    SELECT Product_id, Product_Name, Price
+    FROM Products
+    WHERE Product_Type = 'Apparel' AND Price BETWEEN min_price AND max_price;
+    
+    -- Declare the handler for the cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    -- Open the cursor
+    OPEN apparel_cursor;
+    
+    -- Loop through the cursor and fetch rows
+    read_loop: LOOP
+        FETCH apparel_cursor INTO p_id, p_name, p_price;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Display each row
+        SELECT CONCAT('Product ID: ', p_id, ', Name: ', p_name, ', Price: ', p_price) AS Product_Details;
+    END LOOP;
+    
+    -- Close the cursor
+    CLOSE apparel_cursor;
+END $$
+
+DELIMITER ;
+
+CALL display_apparel_by_price_range(1000, 4000);
+
+-- 2
+DELIMITER $$
+
+CREATE PROCEDURE display_expensive_products()
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE p_id INT;
+    DECLARE p_name VARCHAR(100);
+    DECLARE p_type VARCHAR(50);
+    DECLARE p_price DECIMAL(10, 2);
+    
+    -- Declare the cursor
+    DECLARE high_price_cursor CURSOR FOR
+    SELECT Product_id, Product_Name, Product_Type, Price
+    FROM Products
+    WHERE Price > 5000;
+    
+    -- Declare the handler for the cursor
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = 1;
+    
+    -- Open the cursor
+    OPEN high_price_cursor;
+    
+    -- Loop through the cursor and fetch rows
+    read_loop: LOOP
+        FETCH high_price_cursor INTO p_id, p_name, p_type, p_price;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Display each row
+        SELECT CONCAT('Product ID: ', p_id, ', Name: ', p_name, ', Type: ', p_type, ', Price: ', p_price) AS Product_Details;
+    END LOOP;
+    
+    -- Close the cursor
+    CLOSE high_price_cursor;
+END $$
+
+DELIMITER ;
+
+CALL display_expensive_products();
+
+-- 3
+DELIMITER $$
+
+CREATE PROCEDURE increment_product_prices()
+BEGIN
+    DECLARE rows_updated INT;
+    
+    -- Increment the price of all products by 1000
+    UPDATE Products
+    SET Price = Price + 1000;
+    
+    -- Get the number of rows affected
+    SET rows_updated = ROW_COUNT();
+    
+    -- Display the number of affected records
+    SELECT CONCAT('Number of records affected: ', rows_updated) AS Update_Info;
+END $$
+
+DELIMITER ;
+
+CALL increment_product_prices();
+
